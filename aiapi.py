@@ -178,10 +178,10 @@ def callBotWithText(input_text):
     return res[0]["translations"][0]["text"]
 
 
-def callBotWithSpeech():
-    file_path = "static/audio/recording.m4a"
+def callBotWithSpeech(input_text):
+    
     # Converting Arabic Speech to English Text
-    input_text = speechToText_input(speech_key=speech_key,speech_region=speech_region,speech_recognition_language="ar-QA",target_language="en")
+    #input_text = speechToText_input(speech_key=speech_key,speech_region=speech_region,speech_recognition_language="ar-QA",target_language="en")
 
     #appending the converted english text in Chat Array
     chat = []
@@ -207,9 +207,5 @@ def callBotWithSpeech():
 
     #Arabic Text is converted to arabic speech
     output_text = res[0]["translations"][0]["text"]
-    return textToSpeech_output(speech_key=speech_key,speech_region=speech_region,speech_synthesis_voice_name="ar-QA-AmalNeural",text=output_text)
-    
-    #{ "input_text":input_text , 
-    #  "output_text": output_text }
-    
+    return output_text #textToSpeech_output(speech_key=speech_key,speech_region=speech_region,speech_synthesis_voice_name="ar-QA-AmalNeural",text=output_text)
 

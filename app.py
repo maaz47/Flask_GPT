@@ -31,10 +31,18 @@ def index():
   return render_template('index.html', **locals())
 
 
+@app.route("/speech", methods = ['POST', 'GET'])
+def speech():
+  if request.method == 'POST':
+    input_text = request.form['input_text']
+    response_text = aiapi.callBotWithSpeech(input_text) #.replace("\n","<br>")
+    return jsonify(response_text), 200
+  return render_template('speech.html', **locals())
 
- 
 
-
+@app.route("/text", methods = ['POST', 'GET'])
+def text():
+  return render_template('text.html', **locals())
 
 
 if __name__ == '__main__':

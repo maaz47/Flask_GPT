@@ -43,6 +43,5 @@ $("#gpt-button").click(function(){
             appendResponseHtml(data);
             elem.scrollTop = elem.scrollHeight;
         }
-        
     });
   });
