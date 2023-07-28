@@ -41,7 +41,7 @@ def askBot(openai_url, openai_api_key,chat,cognitive_service_url,cognitive_servi
       'Content-Type': 'application/json'
     }
     
-    payload = ({"dataSources":[{"type":"AzureCognitiveSearch","parameters":{"endpoint":cognitive_service_url,"key":cognitive_service_key,"indexName":indexName,"semanticConfiguration":"","queryType":"simple","fieldsMapping":None,"inScope":True,"roleInformation":"You are an AI assistant for Ministry of Education & Information that helps people in Qatar find information relevant to ministry of education."}}],"deployment":"openaidemo","temperature":0,"top_p":1,"max_tokens":800,"stop":None,"stream":False})
+    payload = ({"dataSources":[{"type":"AzureCognitiveSearch","parameters":{"endpoint":cognitive_service_url,"key":cognitive_service_key,"indexName":indexName,"semanticConfiguration":"","queryType":"simple","fieldsMapping":None,"inScope":True,"roleInformation":"You are an AI assistant for Ministry of Education & Higher Education that helps people in Qatar find information relevant to ministry of education."}}],"deployment":"openaidemo","temperature":0,"top_p":1,"max_tokens":800,"stop":None,"stream":False})
     payload["messages"] = chat
     payload = json.dumps(payload)
 
@@ -138,21 +138,23 @@ def speechToText_input(speech_key,speech_region,speech_recognition_language,targ
             print("Did you set the speech resource key and region values?")
 
 
-def callBotWithText(input_text):
+def callBotWithText(input_text,lang):
     #input_text = "من أنت؟"
 
-    #Translating from Arabic to English
-    res = translate(translation_key = translation_key,
-                    translation_location = translation_location,
-                    translation_endpoint = translation_endpoint,
-                    translation_path = translation_path,
-                    input_text = input_text,
-                    from_language = "ar",
-                    to_language = 'en')
+    if(lang != "en"):
+        #Translating from Arabic to English
+        res = translate(translation_key = translation_key,
+                        translation_location = translation_location,
+                        translation_endpoint = translation_endpoint,
+                        translation_path = translation_path,
+                        input_text = input_text,
+                        from_language = lang,
+                        to_language = 'en')
 
-    translated_text = res[0]["translations"][0]["text"]
-
-
+        translated_text = res[0]["translations"][0]["text"]
+    else:
+        translated_text = input_text
+    
     #appending the converted english text in Chat Array
     chat = []
     chat.append({'role': 'user', 'content': translated_text})
@@ -165,24 +167,24 @@ def callBotWithText(input_text):
     else:
             last_message = "Error occurred during the request."
 
-    #call translator for English to Arabic
-    res = translate(translation_key = translation_key,
-                    translation_location = translation_location,
-                    translation_endpoint = translation_endpoint,
-                    translation_path = translation_path,
-                    input_text = last_message,
-                    from_language = "en",
-                    to_language = 'ar')
+    if(lang != "en"):
+        #call translator for English to Arabic
+        res = translate(translation_key = translation_key,
+                        translation_location = translation_location,
+                        translation_endpoint = translation_endpoint,
+                        translation_path = translation_path,
+                        input_text = last_message,
+                        from_language = "en",
+                        to_language = lang)
 
 
-    return res[0]["translations"][0]["text"]
+        return res[0]["translations"][0]["text"]
+    else:
+        return last_message
 
 
-def callBotWithSpeech(input_text):
+def callBotWithSpeech(input_text,lang):
     
-    # Converting Arabic Speech to English Text
-    #input_text = speechToText_input(speech_key=speech_key,speech_region=speech_region,speech_recognition_language="ar-QA",target_language="en")
-
     #appending the converted english text in Chat Array
     chat = []
     chat.append({'role': 'user', 'content': input_text})
@@ -196,16 +198,20 @@ def callBotWithSpeech(input_text):
     else:
             last_message = "Error occurred during the request"
 
+    if(lang != 'en-US'):
     #Translating english response from askBot in to Arabic
-    res = translate(translation_key = translation_key,
-                    translation_location = translation_location,
-                    translation_endpoint = translation_endpoint,
-                    translation_path = translation_path,
-                    input_text = last_message,
-                    from_language = "en",
-                    to_language = 'ar-QA')
+        res = translate(translation_key = translation_key,
+                        translation_location = translation_location,
+                        translation_endpoint = translation_endpoint,
+                        translation_path = translation_path,
+                        input_text = last_message,
+                        from_language = "en",
+                        to_language = lang)
 
-    #Arabic Text is converted to arabic speech
-    output_text = res[0]["translations"][0]["text"]
+        #Arabic Text is converted to arabic speech
+        output_text = res[0]["translations"][0]["text"]
+    else:
+        output_text = last_message
+    
     return output_text #textToSpeech_output(speech_key=speech_key,speech_region=speech_region,speech_synthesis_voice_name="ar-QA-AmalNeural",text=output_text)
 

@@ -2,7 +2,8 @@
   
 // }, 5000);
 
-
+var lang = document.getElementById('lang').value;
+chat =[{}]
 
 var appendResponseHtml = function(response){
   let html_response = '';
@@ -19,6 +20,9 @@ var appendResponseHtml = function(response){
 
 $("#gpt-button").click(function(){
     
+    var lang = document.getElementById('lang').value;
+    //console.log(lang.value)
+
     var question = $("#chat-input").val();
     let html_question = ''
     html_question += `<a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
@@ -36,7 +40,10 @@ $("#gpt-button").click(function(){
     $.ajax({
         type:"POST",
         url:"/",
-        data:{'input_text': question},
+        data:{
+              'input_text': question,
+              'lang': lang
+             },
         success: function(data){
             //response = data;
             console.log(data);

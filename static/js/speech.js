@@ -37,7 +37,7 @@ var speechToText = function(){
             let translation = result.translations.get(language);
             window.console.log(translation);
             convertedText = translation;
-            botResponse = askBot(convertedText)
+            botResponse = askBot(convertedText,languageSourceOptions.value)
           }
 
           recognizer.close();
@@ -58,12 +58,14 @@ var speechToText = function(){
   });
 }
 
-var askBot = function(convertedText){
+var askBot = function(convertedText,lang){
   var res = "";
   $.ajax({
     type:"POST",
     url:"/speech",
-    data:{'input_text': convertedText}
+    data:{'input_text': convertedText,
+          'lang': lang.split('-')[0]
+         }
     
   }).done(function(data) {
       res = data;
@@ -77,12 +79,12 @@ var askBot = function(convertedText){
       res = "Please try again later | الرجاء معاودة المحاولة في وقت لاحق"
       //return res;
     }
-    textToSpeech(res)
+    textToSpeech(res,lang)
   });
   
 }
 
-var textToSpeech = function(inputText){    
+var textToSpeech = function(inputText,lang){    
   
   var subscriptionKey="f2ba37af57ab4eb295c77a0d1947ce51"
   var serviceRegion = "eastus"
@@ -90,7 +92,60 @@ var textToSpeech = function(inputText){
   SpeechSDK = window.SpeechSDK;
   var synthesizer;
   var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
-  speechConfig.speechSynthesisVoiceName = "ar-QA-MoazNeural";
+  
+  switch (lang) {
+    case "ar-QA":
+      speechConfig.speechSynthesisVoiceName = "ar-QA-AmalNeural";
+      break;
+    case "en-US":
+      speechConfig.speechSynthesisVoiceName = "en-US-AshleyNeural";
+      break;
+    case "ur-IN":
+      speechConfig.speechSynthesisVoiceName = "ur-IN-GulNeural";
+      break;
+    case "hi-IN":
+      speechConfig.speechSynthesisVoiceName = "hi-IN-SwaraNeural";
+      break;
+    case "de-DE":
+      speechConfig.speechSynthesisVoiceName = "de-DE-AmalaNeural";
+      break;
+    case "es-ES":
+      speechConfig.speechSynthesisVoiceName = "es-ES-AbrilNeural";
+      break;
+    case "fi-FI":
+      speechConfig.speechSynthesisVoiceName = "fi-FI-NooraNeural";
+      break;
+    case "fr-FR":
+      speechConfig.speechSynthesisVoiceName = "fr-FR-DeniseNeural";
+      break;
+    case  "it-IT":
+      speechConfig.speechSynthesisVoiceName = "it-IT-IsabellaNeural";
+      break;
+    case  "ja-JP":
+      speechConfig.speechSynthesisVoiceName = "ja-JP-AoiNeural";
+      break;
+    case  "ko-KR":
+      speechConfig.speechSynthesisVoiceName = "ko-KR-SunHiNeural";
+      break;
+    case  "pl-PL":
+        speechConfig.speechSynthesisVoiceName = "pl-PL-ZofiaNeural";
+        break;
+    case  "pt-BR":
+      speechConfig.speechSynthesisVoiceName = "pt-BR-BrendaNeural";
+      break;
+    case  "ru-RU":
+      speechConfig.speechSynthesisVoiceName = "ru-RU-DariyaNeural";
+      break;
+    case  "sv-SE":
+      speechConfig.speechSynthesisVoiceName = "sv-SE-HilleviNeural";
+      break;
+    case  "zh-CN":
+      speechConfig.speechSynthesisVoiceName = "zh-CN-XiaochenNeural";
+      break;
+    default:
+      speechConfig.speechSynthesisVoiceName = "en-US-JennyMultilingualNeural";
+  }
+  
   synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig);
   synthesizer.speakTextAsync(
     inputText,
@@ -115,3 +170,62 @@ var textToSpeech = function(inputText){
   }
 
   speechToText();
+
+
+var Voice = function(lang){
+  switch (lang) {
+    case "ar-QA":
+      speechSynthesisVoiceName = "ar-QA-AmalNeural";
+      break;
+    case "en-US":
+      speechSynthesisVoiceName = "en-US-AshleyNeural";
+      break;
+    case "ur-PK":
+      speechSynthesisVoiceName = "ur-PK-UzmaNeural";
+      break;
+    case "hi-IN":
+      speechSynthesisVoiceName = "hi-IN-SwaraNeural";
+      break;
+    case "de-DE":
+      speechSynthesisVoiceName = "de-DE-AmalaNeural";
+      break;
+    case "es-ES":
+      speechSynthesisVoiceName = "es-ES-AbrilNeural";
+      break;
+    case "fi-FI":
+      speechSynthesisVoiceName = "fi-FI-NooraNeural";
+      break;
+    case "fr-FR":
+      speechSynthesisVoiceName = "fr-FR-DeniseNeural";
+      break;
+    case  "it-IT":
+      speechSynthesisVoiceName = "it-IT-IsabellaNeural";
+      break;
+    case  "ja-JP":
+      speechSynthesisVoiceName = "ja-JP-AoiNeural";
+      break;
+    case  "ko-KR":
+      speechSynthesisVoiceName = "ko-KR-SunHiNeural";
+      break;
+    case  "pl-PL":
+        speechSynthesisVoiceName = "pl-PL-ZofiaNeural";
+        break;
+    case  "pt-BR":
+      speechSynthesisVoiceName = "pt-BR-BrendaNeural";
+      break;
+    case  "ru-RU":
+      speechSynthesisVoiceName = "ru-RU-DariyaNeural";
+      break;
+    case  "sv-SE":
+      speechSynthesisVoiceName = "sv-SE-HilleviNeural";
+      break;
+    case  "zh-CN":
+      speechSynthesisVoiceName = "zh-CN-XiaochenNeural";
+      break;
+    default:
+      speechSynthesisVoiceName = "en-US-JennyMultilingualNeural";
+  }
+
+  return speechSynthesisVoiceName;
+
+}
