@@ -35,7 +35,6 @@ speech_region = config.DevelopmentConfig.speech_region
 #openai.api_key = config.DevelopmentConfig.openai.api_key
 
 
-
 def askBot(openai_url, openai_api_key,chat,cognitive_service_url,cognitive_service_key,indexName):
     headers = {
       'api-key': openai_api_key,
@@ -88,57 +87,6 @@ def translate(translation_key,translation_location,translation_endpoint,translat
 
     #return json.dumps(response, sort_keys=True, ensure_ascii=False, indent=4, separators=(',', ': '))
     return response
-
-def textToSpeech_output(speech_key,speech_region,speech_synthesis_voice_name,text):
-    
-    speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=speech_region)
-    # Note: the voice setting will not overwrite the voice element in input SSML.
-    speech_config.speech_synthesis_voice_name = speech_synthesis_voice_name 
-
-
-    # use the default speaker as audio output.
-    speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config)
-
-    result = speech_synthesizer.speak_text_async(text).get()
-    # Check result
-    if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-        print("Speech synthesized for text [{}]".format(text))
-      
-    elif result.reason == speechsdk.ResultReason.Canceled:
-        cancellation_details = result.cancellation_details
-        print("Speech synthesis canceled: {}".format(cancellation_details.reason))
-        if cancellation_details.reason == speechsdk.CancellationReason.Error:
-            print("Error details: {}".format(cancellation_details.error_details))
-
-
-def speechToText_input(speech_key,speech_region,speech_recognition_language,target_language):
-    
-    speech_translation_config = speechsdk.translation.SpeechTranslationConfig(subscription=speech_key, region=speech_region)
-    speech_translation_config.speech_recognition_language=speech_recognition_language
-    
-    target_language=target_language
-    speech_translation_config.add_target_language(target_language)
-
-    audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)
-    translation_recognizer = speechsdk.translation.TranslationRecognizer(translation_config=speech_translation_config, audio_config=audio_config)
-
-    print("Speak into your microphone.")
-    translation_recognition_result = translation_recognizer.recognize_once_async().get()
-
-    if translation_recognition_result.reason == speechsdk.ResultReason.TranslatedSpeech:
-        print("Recognized: {}".format(translation_recognition_result.text))
-        print("""Translated into '{}': {}""".format(
-            target_language, 
-            translation_recognition_result.translations[target_language]))
-        return translation_recognition_result.translations[target_language]
-    elif translation_recognition_result.reason == speechsdk.ResultReason.NoMatch:
-        print("No speech could be recognized: {}".format(translation_recognition_result.no_match_details))
-    elif translation_recognition_result.reason == speechsdk.ResultReason.Canceled:
-        cancellation_details = translation_recognition_result.cancellation_details
-        print("Speech Recognition canceled: {}".format(cancellation_details.reason))
-        if cancellation_details.reason == speechsdk.CancellationReason.Error:
-            print("Error details: {}".format(cancellation_details.error_details))
-            print("Did you set the speech resource key and region values?")
 
 
 def callBotWithText(input_text,lang):
@@ -201,13 +149,14 @@ def callBotWithText_withHistory(input_text,lang,guid):
     else:
         translated_text = input_text
 
+    #getting history (if any)
     chat,guid = getHistory(guid,translated_text,'user')
     
     bot_reponse = askBot(openai_url, openai_api_key, chat,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
     
     if bot_reponse:
             last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
-            chat,guid = getHistory(guid,last_message,'assistant')
+            chat,guid = getHistory(guid,last_message,'assistant') #saving response to history
     else:
             last_message = "Error occurred during the request."
 
@@ -221,8 +170,6 @@ def callBotWithText_withHistory(input_text,lang,guid):
                         from_language = "en",
                         to_language = lang)
 
-
-        #return res[0]["translations"][0]["text"]
         return ({"last_message": res[0]["translations"][0]["text"], "guid":guid})
     else:
         return ({"last_message": last_message, "guid":guid})
@@ -243,7 +190,7 @@ def callBotWithSpeech(input_text,lang):
             last_message = "Error occurred during the request"
 
     if(lang != 'en-US'):
-    #Translating english response from askBot in to Arabic
+        #Translating english response from askBot in to Arabic
         res = translate(translation_key = translation_key,
                         translation_location = translation_location,
                         translation_endpoint = translation_endpoint,
@@ -251,30 +198,29 @@ def callBotWithSpeech(input_text,lang):
                         input_text = last_message,
                         from_language = "en",
                         to_language = lang)
-
-        #Arabic Text is converted to arabic speech
         output_text = res[0]["translations"][0]["text"]
+    
     else:
         output_text = last_message
     
-    return output_text #textToSpeech_output(speech_key=speech_key,speech_region=speech_region,speech_synthesis_voice_name="ar-QA-AmalNeural",text=output_text)
-
+    return output_text
 
 def callBotWithSpeech_withHistory(input_text,lang,guid):
-    #appending the converted english text in Chat Array
     
+    #getting Chat history (if any)
     chat,guid = getHistory(guid,input_text,'user')
+    
     #Passing English Chat to askBot (Azure Open AI)
     bot_reponse = askBot(openai_url, openai_api_key, chat,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
 
     if bot_reponse:
             last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"] #bot_reponse[len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
-            chat,guid = getHistory(guid,last_message,'assistant')
+            chat,guid = getHistory(guid,last_message,'assistant') #saving the response to history
     else:
             last_message = "Error occurred during the request"
 
     if(lang != 'en-US'):
-    #Translating english response from askBot in to Arabic
+        #Translating english response from askBot in to Arabic
         res = translate(translation_key = translation_key,
                         translation_location = translation_location,
                         translation_endpoint = translation_endpoint,
@@ -282,15 +228,12 @@ def callBotWithSpeech_withHistory(input_text,lang,guid):
                         input_text = last_message,
                         from_language = "en",
                         to_language = lang)
-
-        #Arabic Text is converted to arabic speech
         output_text = res[0]["translations"][0]["text"]
+    
     else:
         output_text = last_message
     
-    return ({"output_text": output_text, "guid":guid}) #textToSpeech_output(speech_key=speech_key,speech_region=speech_region,speech_synthesis_voice_name="ar-QA-AmalNeural",text=output_text)
-
-
+    return ({"output_text": output_text, "guid":guid}) 
 
 
 def getHistory(guid,message,role):
