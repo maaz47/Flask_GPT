@@ -1,13 +1,13 @@
 
-var convertedText ="";
-var botResponse = "";
-let guidKey = "guid"
-sessionStorage.setItem(guidKey, 'not found');
+var convertedText ="";                            // Setup a global var for translated text
+var botResponse = "";                             // Setup a global var for response from Open AIs API
+let guidKey = "guid"                              //create a var for session key
+sessionStorage.setItem(guidKey, 'not found');     //set the session key value
 
 
 var langChange = function(){
-  sessionStorage.setItem(guidKey, 'not found');
-  alert("Please start the conversation again!");
+  sessionStorage.setItem(guidKey, 'not found');   //reset the guid to not found (means the previous chat is not in context)
+  alert("Please start the conversation again!");  //show an alert
 }
 
 var speechToText = function(){
@@ -68,32 +68,10 @@ var speechToText = function(){
   });
 }
 
-var askBot = function(convertedText,lang){
-  var res = "";
-  $.ajax({
-    type:"POST",
-    url:"/speech",
-    data:{'input_text': convertedText,
-          'lang': lang.split('-')[0]
-         }
-    
-  }).done(function(data) {
-      res = data;
-      //return res;
-      
-  }).fail(function(err) {
-    res = err;
-    //return res;
-  }).always(function(data) {
-    if (res == ""){
-      res = "Please try again later"
-      //return res;
-    }
-    textToSpeech(res,lang)
-  });
-  
-}
 
+
+///// This function gets the reponse from backend - ////////////////////
+  ////// The response is based on the context of chat ////////////////////
 var askBot_withHistory = function(convertedText,lang,guid){
   console.log(guid);
   var res = "";
@@ -112,17 +90,17 @@ var askBot_withHistory = function(convertedText,lang,guid){
       
   }).fail(function(err) {
       res = err
-    //guid = data.guid;
   }).always(function(data) {
     if (res == ""){
       res = "Please try again later"
-      //return res;
     }
+    //Call Text to Speech with Final Response
     textToSpeech(res,lang)
   });
   
 }
 
+//Text to Speech Function
 var textToSpeech = function(inputText,lang){    
   
   var subscriptionKey="f2ba37af57ab4eb295c77a0d1947ce51"
@@ -148,19 +126,13 @@ var textToSpeech = function(inputText,lang){
       synthesizer.close();
       synthesizer = undefined;
   });
-    //if (!!window.SpeechSDK) {
-    //  document.getElementById('content').style.display = 'block';
-    //  document.getElementById('warning').style.display = 'none';
-    //   //in case we have a function for getting an authorization token, call it.
-    //  if (typeof RequestAuthorizationToken === "function") {
-    //      RequestAuthorizationToken();
-    //  }
-    //}
-  }
-
-  speechToText();
+    
+}
+//call Speech to Text onload
+speechToText();
 
 
+//Function to return voice names for text to Speech
 var Voice = function(lang){
   var VoiceName = ""
   switch (lang) {
@@ -218,4 +190,29 @@ var Voice = function(lang){
 
   return VoiceName;
 
+}
+
+
+///// This function gets the reponse from backend - The response is based on the the single input ////////////////////
+///// Not to be used but to be kept as a backup ///////////////////
+var askBot = function(convertedText,lang){
+  var res = "";
+  $.ajax({
+    type:"POST",
+    url:"/speech",
+    data:{'input_text': convertedText,
+          'lang': lang.split('-')[0]
+         }
+    
+  }).done(function(data) {
+      res = data;
+  }).fail(function(err) {
+    res = err;
+  }).always(function(data) {
+    if (res == ""){
+      res = "Please try again later"
+    }
+    textToSpeech(res,lang)
+  });
+  
 }
