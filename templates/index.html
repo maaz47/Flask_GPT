@@ -7,10 +7,14 @@
     <meta name="description" content="Demonstration of ChatGPT API in a Python Flask Application. A Skolo Online course.">
 
     <title>Azure Open AI Support</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/flag.png') }}">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous"> -->
+    <link rel= "stylesheet" type= "text/css" href= "{{url_for('static',filename='css/bootstrap.min.css') }}">
+    <!-- <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script> -->
+    <script src="{{url_for('static',filename='js/jquery-3.6.3.min.js') }}"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script> -->
+    <script src="{{url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
+    
     <link rel= "stylesheet" type= "text/css" href= "{{url_for('static',filename='css/style.css') }}">
   </head>
   <body>
@@ -41,7 +45,7 @@
     <div style="text-align: center;" class="row">
       <div class="col-sm-2"></div>
       <div class="col-sm-8">
-        <img src="https://www.edu.gov.qa/PublishingImages/LOGO%20NEW%20EDU-%20AR.png" height="100px" width="115px"/>
+        <img src="{{url_for('static', filename='images/ministrylogo.png')}}" height="100px" width="115px"/>
       
       <p class="lead">
         Ministry of Education and Higher Education
@@ -50,7 +54,7 @@
       <div class="col-sm-2">
         <br>
         <p>Language</p>
-        <select id="lang" width="100%" class="form-control" aria-label="Default select example">
+        <select id="lang" onchange="langChange()" width="100%" class="form-control" aria-label="Default select example" >
           <option selected="selected" value="ar">Arabic</option>
           <option value="en">English</option>
         </select>
@@ -64,9 +68,10 @@
     </div>
 
     <div class="input-group mb-3">
-      <input type="text" class="form-control" id="chat-input">
+      <input type="text" class="form-control" id="chat-input"> &nbsp
       <div class="input-group-append">
-        <button id="gpt-button" class="btn btn-primary">Ask Bot</button>
+        <button id="textHistory" class="btn btn-primary">History</button>
+        <button id="gpt-button" class="btn btn-secondary">No History</button>
       </div>
     </div>
   </div>

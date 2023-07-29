@@ -1,9 +1,12 @@
-// window.setInterval(function() {
-  
-// }, 5000);
+
 
 var lang = document.getElementById('lang').value;
-chat =[{}]
+var guid = "not found"
+
+var langChange = function(){
+  $(".list-group-item").remove();
+  $("#chat-input").val('');
+}
 
 var appendResponseHtml = function(response){
   let html_response = '';
@@ -51,4 +54,47 @@ $("#gpt-button").click(function(){
             elem.scrollTop = elem.scrollHeight;
         }
     });
+  });
+
+  $("#textHistory").click(function(){
+    //console.log(guid);
+    //const chatbox = document.getElementById('list-group');
+    //const directChildren = chatbox.children.length;
+    //console.log(directChildren);
+    
+    var lang = document.getElementById('lang').value;
+    var question = $("#chat-input").val();
+    
+    let html_question = ''
+    html_question += `<a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
+      <img src="./static/images/favicon.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
+      <div class="d-flex gap-2 w-100 justify-content-between">
+        <div>
+          <p class="mb-0 opacity-75">${question}</p>
+        </div>
+      </div>
+    </a>`;
+    $("#list-group").append(html_question);
+    $("#chat-input").val('');
+    var elem = document.getElementById('list-group');
+    elem.scrollTop = elem.scrollHeight;
+    
+    $.ajax({
+      type:"POST",
+      url:"/callBotWithText_withHistory",
+      data:{
+        'input_text': question,
+        'lang':lang,
+        "guid":guid
+      }
+    }).done(function(data) {
+      appendResponseHtml(data.last_message);
+      elem.scrollTop = elem.scrollHeight;
+      guid = data.guid;
+    }).fail(function(err) {
+        console.log(err)
+    }).always(function(data) {
+        
+    });
+
   });

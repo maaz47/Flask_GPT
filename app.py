@@ -23,6 +23,16 @@ def index():
     return jsonify(response_text), 200
   return render_template('index.html', **locals())
 
+@app.route("/callBotWithText_withHistory", methods = ['POST', 'GET'])
+def index_withHistory():
+  if request.method == 'POST':
+    input_text = request.form['input_text']
+    guid = request.form['guid']
+    lang = request.form['lang']
+    response_text = aiapi.callBotWithText_withHistory(input_text,lang,guid) #.replace("\n","<br>")
+    return jsonify(response_text), 200
+  return render_template('index.html', **locals())
+
 
 @app.route("/speech", methods = ['POST', 'GET'])
 def speech():
@@ -30,6 +40,16 @@ def speech():
     input_text = request.form['input_text']
     lang = request.form['lang']
     response_text = aiapi.callBotWithSpeech(input_text,lang) #.replace("\n","<br>")
+    return jsonify(response_text), 200
+  return render_template('speech.html', **locals())
+
+@app.route("/speech_withHistory", methods = ['POST', 'GET'])
+def speech_withHistory():
+  if request.method == 'POST':
+    input_text = request.form['input_text']
+    lang = request.form['lang']
+    guid = request.form['guid']
+    response_text = aiapi.callBotWithSpeech_withHistory(input_text,lang,guid) #.replace("\n","<br>")
     return jsonify(response_text), 200
   return render_template('speech.html', **locals())
 
