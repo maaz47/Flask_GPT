@@ -38,6 +38,7 @@
   </nav> -->
 </header>
 
+
 <!-- Begin page content -->
 <main class="flex-shrink-0">
   <div class="container">
@@ -53,11 +54,15 @@
     </div>
       <div class="col-sm-2">
         <br>
-        <p>Language</p>
-        <select id="lang" onchange="langChange()" width="100%" class="form-control" aria-label="Default select example" >
+        
+        <div class="styled-input">
+          <input class="labelInput" type="text" id="langLabel" readonly>
+      </div>
+        <button class="btn btn-secondary" onclick="openOverlay()">Language</button>
+        <!-- <select id="lang" onchange="langChange()" width="100%" class="form-control" aria-label="Default select example" >
           <option selected="selected" value="ar">Arabic</option>
           <option value="en">English</option>
-        </select>
+        </select> -->
       </div>
   </div>
     
@@ -81,10 +86,27 @@
       <span class="text-muted"> Developed by: <a href="https://techvista.com">Techvista</a></li></span>
     </div>
   </footer>
+
+ <!-- Overlay -->
+ <div class="overlay" id="overlay">
+  <div class="overlay-content">
+      <h3 class="card-title">Select Language</h3><br>
+      <div class="form-group">
+          <!-- <label for="dropdown">Language:</label> -->
+          <select id="lang" width="100%" class="form-control" aria-label="Default select example" >
+            <option selected="selected" value="ar">Arabic</option>
+            <option value="en">English</option>
+          </select>
+      </div>
+      <br>
+      <button class="btn btn-secondary" onclick="closeOverlay()">Set</button>
+  </div>
+</div>
+
+
 </main>
   <script src="{{url_for('static', filename='js/script.js')}}"></script>
     
-
   </body>
   
 </html>

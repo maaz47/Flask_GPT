@@ -99,3 +99,45 @@ div.scroll {
   .slider.round:before {
     border-radius: 50%;
   }
+
+  /* CSS to style the overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    z-index: 9999; /* Set a high z-index to ensure the overlay appears on top of other elements */
+}
+
+.overlay-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 400px;
+}
+
+.labelInput {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  padding: 0;
+  font-size: 16px;
+  font-family: inherit;
+  font-style: oblique;
+  font-weight: 1500;
+  font-size: larger;
+  /* Optional: Add other styles to match your label's appearance */
+}
+
+/* Optional: Adjust the styles to make it look like a label */
+.styled-input {
+  border-bottom: 1px solid #ccc; /* Add a border to indicate the input area */
+  padding: 5px; /* Optional: Add padding to match your label's appearance */
+}

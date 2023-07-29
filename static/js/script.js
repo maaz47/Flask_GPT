@@ -1,11 +1,28 @@
-
-
 var lang = document.getElementById('lang').value;
-var guid = "not found"
+$("#langLabel").val(lang);
+let guidKey = "guid"
+sessionStorage.setItem(guidKey, 'not found');
+
+
+openOverlay() 
+function openOverlay() {
+  document.querySelector('.overlay').style.display = 'block';
+}
+
+// Function to close the overlay
+function closeOverlay() {
+  document.querySelector('.overlay').style.display = 'none';
+  langChange();
+}
+
 
 var langChange = function(){
   $(".list-group-item").remove();
   $("#chat-input").val('');
+  sessionStorage.setItem(guidKey, 'not found');
+  lang = document.getElementById('lang').value;
+  $("#langLabel").val(lang); 
+  console.log(lang);
 }
 
 var appendResponseHtml = function(response){
@@ -64,7 +81,7 @@ $("#gpt-button").click(function(){
     
     var lang = document.getElementById('lang').value;
     var question = $("#chat-input").val();
-    
+    //console.log(lang);
     let html_question = ''
     html_question += `<a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
       <img src="./static/images/favicon.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
@@ -78,6 +95,7 @@ $("#gpt-button").click(function(){
     $("#chat-input").val('');
     var elem = document.getElementById('list-group');
     elem.scrollTop = elem.scrollHeight;
+    let guid = sessionStorage.getItem(guidKey);
     
     $.ajax({
       type:"POST",
@@ -90,7 +108,7 @@ $("#gpt-button").click(function(){
     }).done(function(data) {
       appendResponseHtml(data.last_message);
       elem.scrollTop = elem.scrollHeight;
-      guid = data.guid;
+      sessionStorage.setItem(guidKey, data.guid);
     }).fail(function(err) {
         console.log(err)
     }).always(function(data) {
