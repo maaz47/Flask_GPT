@@ -34,7 +34,9 @@ speech_region = config.DevelopmentConfig.speech_region
 #openai.api_version = config.DevelopmentConfig.openai.api_version
 #openai.api_key = config.DevelopmentConfig.openai.api_key
 
+chat = []
 
+############ ASK BOT OPEN AI FUNCTION ######################################
 def askBot(openai_url, openai_api_key,chat,cognitive_service_url,cognitive_service_key,indexName):
     headers = {
       'api-key': openai_api_key,
@@ -59,7 +61,7 @@ def askBot(openai_url, openai_api_key,chat,cognitive_service_url,cognitive_servi
         print(f"An error occurred: {e}")
         return None
 
-
+############ TRANSLATE ######################################
 def translate(translation_key,translation_location,translation_endpoint,translation_path,from_language,to_language,input_text):
     constructed_url = translation_endpoint + translation_path
 
@@ -88,51 +90,7 @@ def translate(translation_key,translation_location,translation_endpoint,translat
     #return json.dumps(response, sort_keys=True, ensure_ascii=False, indent=4, separators=(',', ': '))
     return response
 
-
-def callBotWithText(input_text,lang):
-    #input_text = "من أنت؟"
-
-    if(lang != "en"):
-        #Translating from Arabic to English
-        res = translate(translation_key = translation_key,
-                        translation_location = translation_location,
-                        translation_endpoint = translation_endpoint,
-                        translation_path = translation_path,
-                        input_text = input_text,
-                        from_language = lang,
-                        to_language = 'en')
-
-        translated_text = res[0]["translations"][0]["text"]
-    else:
-        translated_text = input_text
-    
-    #appending the converted english text in Chat Array
-    chat = []
-    chat.append({'role': 'user', 'content': translated_text})
-
-    bot_reponse = askBot(openai_url, openai_api_key, chat,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
-
-    if bot_reponse:
-            last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse)-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
-
-    else:
-            last_message = "Error occurred during the request."
-
-    if(lang != "en"):
-        #call translator for English to Arabic
-        res = translate(translation_key = translation_key,
-                        translation_location = translation_location,
-                        translation_endpoint = translation_endpoint,
-                        translation_path = translation_path,
-                        input_text = last_message,
-                        from_language = "en",
-                        to_language = lang)
-
-
-        return res[0]["translations"][0]["text"]
-    else:
-        return last_message
-
+############ TEXT BACKEND ######################################
 def callBotWithText_withHistory(input_text,lang,guid):
    
     if(lang != "en"):
@@ -150,15 +108,23 @@ def callBotWithText_withHistory(input_text,lang,guid):
         translated_text = input_text
 
     #getting history (if any)
-    chat,guid = getHistory(guid,translated_text,'user')
-    
+    #chat,guid = getHistory(guid,translated_text,'user')
+    global chat;
+    chat.append(({'role': 'user', 'content': translated_text}))
+    if len(chat) > 10:
+        chat = chat[-10:]
+
     bot_reponse = askBot(openai_url, openai_api_key, chat,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
     
     if bot_reponse:
             last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
-            chat,guid = getHistory(guid,last_message,'assistant') #saving response to history
+            #chat,guid = getHistory(guid,last_message,'assistant') #saving response to history
+            chat.append(({'role': 'assistant', 'content': last_message}))
+
     else:
             last_message = "Error occurred during the request."
+
+    print(chat)
 
     if(lang != "en"):
         #call translator for English to Arabic
@@ -174,21 +140,28 @@ def callBotWithText_withHistory(input_text,lang,guid):
     else:
         return ({"last_message": last_message, "guid":guid})
 
-
-def callBotWithSpeech(input_text,lang):
-    #appending the converted english text in Chat Array
-    chat = []
-    chat.append({'role': 'user', 'content': input_text})
+############ SPEECH BACKEND ######################################
+def callBotWithSpeech_withHistory(input_text,lang,guid):
+    
+    #getting Chat history (if any)
+    #chat,guid = getHistory(guid,input_text,'user')
+    
+    global chat;
+    chat.append(({'role': 'user', 'content': input_text}))
+    if len(chat) > 10:
+        chat = chat[-10:]
 
     #Passing English Chat to askBot (Azure Open AI)
     bot_reponse = askBot(openai_url, openai_api_key, chat,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
 
     if bot_reponse:
             last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"] #bot_reponse[len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
+            #chat,guid = getHistory(guid,last_message,'assistant') #saving the response to history
+            chat.append(({'role': 'assistant', 'content': last_message}))
 
     else:
             last_message = "Error occurred during the request"
-
+    print(chat)
     if(lang != 'en-US'):
         #Translating english response from askBot in to Arabic
         res = translate(translation_key = translation_key,
@@ -203,9 +176,11 @@ def callBotWithSpeech(input_text,lang):
     else:
         output_text = last_message
     
-    return output_text
+    return ({"output_text": output_text, "guid":guid}) 
 
-def callBotWithSpeech_withHistory(input_text,lang,guid):
+
+############ WHATSAPP ######################################
+def callBotWithWhatsApp(input_text,lang,guid):
     
     #getting Chat history (if any)
     chat,guid = getHistory(guid,input_text,'user')
@@ -236,6 +211,14 @@ def callBotWithSpeech_withHistory(input_text,lang,guid):
     return ({"output_text": output_text, "guid":guid}) 
 
 
+############ DELETE HISTORY ######################################
+def delete_History():
+     global chat
+     chat = []
+     return "Please start the conversation!"
+
+
+############ MAINTAIN HISTORY (NOT IN USE) ######################################
 def getHistory(guid,message,role):
     filepath = ""
     chat = []

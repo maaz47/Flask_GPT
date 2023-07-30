@@ -1,13 +1,24 @@
 
 var convertedText ="";                            // Setup a global var for translated text
 var botResponse = "";                             // Setup a global var for response from Open AIs API
-let guidKey = "guid"                              //create a var for session key
-sessionStorage.setItem(guidKey, 'not found');     //set the session key value
+//let guidKey = "guid"                              //create a var for session key
+//sessionStorage.setItem(guidKey, 'not found');     //set the session key value
 
 
 var langChange = function(){
-  sessionStorage.setItem(guidKey, 'not found');   //reset the guid to not found (means the previous chat is not in context)
-  alert("Please start the conversation again!");  //show an alert
+  //sessionStorage.setItem(guidKey, 'not found');   //reset the guid to not found (means the previous chat is not in context)
+  //alert("Please start the conversation again!");  //show an alert
+  
+  $.ajax({
+    type:"POST",
+    url:"/deleteHistory",
+    data:{}
+  }).done(function(data) {
+    alert(data)
+  }).fail(function(err) {
+    alert(err)
+  });
+
 }
 
 var speechToText = function(){
@@ -46,7 +57,7 @@ var speechToText = function(){
             let translation = result.translations.get(language);
             window.console.log(translation);
             convertedText = translation;
-            let guid = sessionStorage.getItem(guidKey);
+            let guid = "nothing" //sessionStorage.getItem(guidKey);
             botResponse = askBot_withHistory(convertedText,languageSourceOptions.value,guid) //askBot(convertedText,languageSourceOptions.value)
           }
 
@@ -68,16 +79,14 @@ var speechToText = function(){
   });
 }
 
-
-
 ///// This function gets the reponse from backend - ////////////////////
   ////// The response is based on the context of chat ////////////////////
 var askBot_withHistory = function(convertedText,lang,guid){
-  console.log(guid);
+ 
   var res = "";
   $.ajax({
     type:"POST",
-    url:"/speech_withHistory",
+    url:"/speech",
     data:{'input_text': convertedText,
           'lang': lang.split('-')[0],
           'guid': guid
@@ -85,8 +94,8 @@ var askBot_withHistory = function(convertedText,lang,guid){
     
   }).done(function(data) {
       res = data.output_text;
-      guid = data.guid;
-      sessionStorage.setItem(guidKey, guid);
+      //guid = data.guid;
+      //sessionStorage.setItem(guidKey, guid);
       
   }).fail(function(err) {
       res = err
@@ -128,6 +137,7 @@ var textToSpeech = function(inputText,lang){
   });
     
 }
+
 //call Speech to Text onload
 speechToText();
 
@@ -190,29 +200,4 @@ var Voice = function(lang){
 
   return VoiceName;
 
-}
-
-
-///// This function gets the reponse from backend - The response is based on the the single input ////////////////////
-///// Not to be used but to be kept as a backup ///////////////////
-var askBot = function(convertedText,lang){
-  var res = "";
-  $.ajax({
-    type:"POST",
-    url:"/speech",
-    data:{'input_text': convertedText,
-          'lang': lang.split('-')[0]
-         }
-    
-  }).done(function(data) {
-      res = data;
-  }).fail(function(err) {
-    res = err;
-  }).always(function(data) {
-    if (res == ""){
-      res = "Please try again later"
-    }
-    textToSpeech(res,lang)
-  });
-  
 }

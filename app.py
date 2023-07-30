@@ -2,11 +2,17 @@ from flask import Flask, render_template, jsonify, request
 import config
 import openai
 import aiapi
+from twilio.twiml.messaging_response import MessagingResponse
 
+
+openai_url = config.DevelopmentConfig.openai_url
+openai_api_key = config.DevelopmentConfig.openai_api_key
+cognitive_service_url = config.DevelopmentConfig.cognitive_service_url
+cognitive_service_key= config.DevelopmentConfig.cognitive_service_key
+indexName = config.DevelopmentConfig.indexName
 
 def page_not_found(e):
   return render_template('404.html'), 404
-
 
 app = Flask(__name__)
 app.config.from_object(config.config['development'])
@@ -14,17 +20,9 @@ app.config.from_object(config.config['development'])
 app.register_error_handler(404, page_not_found)
 
 
+############# TEXT ########################################
 @app.route("/", methods = ['POST', 'GET'])
 def index():
-  if request.method == 'POST':
-    input_text = request.form['input_text']
-    lang = request.form['lang']
-    response_text = aiapi.callBotWithText(input_text,lang) #.replace("\n","<br>")
-    return jsonify(response_text), 200
-  return render_template('index.html', **locals())
-
-@app.route("/callBotWithText_withHistory", methods = ['POST', 'GET'])
-def index_withHistory():
   if request.method == 'POST':
     input_text = request.form['input_text']
     guid = request.form['guid']
@@ -34,16 +32,8 @@ def index_withHistory():
   return render_template('index.html', **locals())
 
 
+############# SPEECH ########################################
 @app.route("/speech", methods = ['POST', 'GET'])
-def speech():
-  if request.method == 'POST':
-    input_text = request.form['input_text']
-    lang = request.form['lang']
-    response_text = aiapi.callBotWithSpeech(input_text,lang) #.replace("\n","<br>")
-    return jsonify(response_text), 200
-  return render_template('speech.html', **locals())
-
-@app.route("/speech_withHistory", methods = ['POST', 'GET'])
 def speech_withHistory():
   if request.method == 'POST':
     input_text = request.form['input_text']
@@ -54,9 +44,37 @@ def speech_withHistory():
   return render_template('speech.html', **locals())
 
 
-@app.route("/text", methods = ['POST', 'GET'])
-def text():
-  return render_template('text.html', **locals())
+############# WHATSAPP ########################################
+chat_history = []
+@app.route("/whatsapp", methods=['POST'])
+def chatgpt():
+    inb_msg = request.form['Body'].lower()
+    
+    global chat_history;
+    chat_history.append({'role': 'user', 'content': inb_msg})
+    
+    if len(chat_history) > 10:
+      chat_history = chat_history[-10:]
+    
+    bot_reponse = aiapi.askBot(openai_url, openai_api_key, chat_history,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
+    if bot_reponse:
+      last_msg = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"]
+      chat_history.append({'role': 'assistant', 'content': last_msg})
+    
+    else:
+      last_msg="Try Again!!"
+    
+    resp = MessagingResponse()
+    resp.message(last_msg)
+    return str(resp)
+  
+
+############# DELETE HISTORY ########################################
+@app.post("/deleteHistory")
+def delete_History():
+  if request.method == 'POST':
+    res = aiapi.delete_History()
+    return jsonify(res), 200
 
 
 if __name__ == '__main__':
