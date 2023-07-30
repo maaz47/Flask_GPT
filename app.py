@@ -4,13 +4,6 @@ import openai
 import aiapi
 from twilio.twiml.messaging_response import MessagingResponse
 
-
-openai_url = config.DevelopmentConfig.openai_url
-openai_api_key = config.DevelopmentConfig.openai_api_key
-cognitive_service_url = config.DevelopmentConfig.cognitive_service_url
-cognitive_service_key= config.DevelopmentConfig.cognitive_service_key
-indexName = config.DevelopmentConfig.indexName
-
 def page_not_found(e):
   return render_template('404.html'), 404
 
@@ -38,7 +31,7 @@ def speech_withHistory():
   if request.method == 'POST':
     input_text = request.form['input_text']
     lang = request.form['lang']
-    guid = request.form['guid']
+    guid = "nothing" #request.form['guid']
     response_text = aiapi.callBotWithSpeech_withHistory(input_text,lang,guid) #.replace("\n","<br>")
     return jsonify(response_text), 200
   return render_template('speech.html', **locals())
@@ -56,9 +49,9 @@ def chatgpt():
     if len(chat_history) > 10:
       chat_history = chat_history[-10:]
     
-    bot_reponse = aiapi.askBot(openai_url, openai_api_key, chat_history,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
+    bot_reponse = aiapi.askBot(chat_history) #.replace("\n","<br>")
     if bot_reponse:
-      last_msg = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"]
+      last_msg = bot_reponse
       chat_history.append({'role': 'assistant', 'content': last_msg})
     
     else:

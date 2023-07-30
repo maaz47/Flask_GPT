@@ -1,3 +1,4 @@
+import http.client
 import requests, uuid, json
 import azure.cognitiveservices.speech as speechsdk
 import os
@@ -36,30 +37,72 @@ speech_region = config.DevelopmentConfig.speech_region
 
 chat = []
 
-############ ASK BOT OPEN AI FUNCTION ######################################
-def askBot(openai_url, openai_api_key,chat,cognitive_service_url,cognitive_service_key,indexName):
+
+################## HTTP ASK BOT OPEN AI FUNCTION ##################################################
+def askBothttpClient(chat):
+    conn = http.client.HTTPSConnection("openaidemo159.openai.azure.com")
+    payload = ({
+      "dataSources": [
+        {
+          "type": "AzureCognitiveSearch",
+          "parameters": {
+            "endpoint": cognitive_service_url,
+            "key": cognitive_service_key,
+            "indexName": indexName,
+            "semanticConfiguration": "",
+            "queryType": "simple",
+            "fieldsMapping": None,
+            "inScope": True,
+            "roleInformation": "You are an Educational AI assistant for Ministry of Education & Higher Education that helps people in Qatar find relevant information."
+          }
+        }
+      ],
+      "deployment": "openaidemo",
+      "temperature": 0.3,
+      "top_p": 1,
+      "max_tokens": 500,
+      "stop": None,
+      "stream": False
+    })
+    payload["messages"] = chat
+    payload = json.dumps(payload)
+
+    headers = {
+      'api-key': openai_api_key,
+      'Content-Type': 'application/json'
+    }
+    
+    conn.request("POST", "/openai/deployments/openaidemo/extensions/chat/completions?api-version=2023-06-01-preview", payload, headers)
+    res = conn.getresponse()
+    data = res.read()
+    response = json.loads(data.decode("utf-8")) 
+    return (response["choices"][0]["messages"][1]["content"])
+    
+
+############ REQUEST ASK BOT OPEN AI FUNCTION ######################################
+def askBot(chat):
     headers = {
       'api-key': openai_api_key,
       'Content-Type': 'application/json'
     }
     
     payload = ({"dataSources":[{"type":"AzureCognitiveSearch","parameters":{"endpoint":cognitive_service_url,"key":cognitive_service_key,"indexName":indexName,"semanticConfiguration":"","queryType":"simple","fieldsMapping":None,"inScope":True,"roleInformation":"You are an AI assistant for Ministry of Education & Higher Education that helps people in Qatar find information relevant to ministry of education."}}],"deployment":"openaidemo","temperature":0,"top_p":1,"max_tokens":200,"stop":None,"stream":False})
-    
-    payload["messages"] = chat #[{"role": "user", "content": "Hi"}, {"role": "assistant", "content": "Hello! How can I assist you today?"}, {"role": "user", "content": "Tell me about yourself"}] 
+    print(chat)
+    payload["messages"] = chat 
     payload = json.dumps(payload)
 
     try:
         response = requests.request("POST", openai_url, headers=headers, data=payload)
         response.raise_for_status()  # Raise an exception for 4xx and 5xx errors
         #return response.json()
-        response = response.json()
-        
-        chat.append(response["choices"][0]["messages"])
-        return chat
+        res = response.json() 
+        #res = json.loads(response)
+        return str(res["choices"][0]["messages"][1]["content"])
 
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
+
 
 ############ TRANSLATE ######################################
 def translate(translation_key,translation_location,translation_endpoint,translation_path,from_language,to_language,input_text):
@@ -92,7 +135,7 @@ def translate(translation_key,translation_location,translation_endpoint,translat
 
 ############ TEXT BACKEND ######################################
 def callBotWithText_withHistory(input_text,lang,guid):
-   
+    
     if(lang != "en"):
         #Translating from Arabic to English
         res = translate(translation_key = translation_key,
@@ -109,22 +152,21 @@ def callBotWithText_withHistory(input_text,lang,guid):
 
     #getting history (if any)
     #chat,guid = getHistory(guid,translated_text,'user')
-    global chat;
+    global chat
     chat.append(({'role': 'user', 'content': translated_text}))
     if len(chat) > 10:
         chat = chat[-10:]
 
-    bot_reponse = askBot(openai_url, openai_api_key, chat,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
+    bot_reponse = askBot(chat) # for generic: askBot(chat)
     
     if bot_reponse:
-            last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
+            #last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
+            last_message = bot_reponse #[1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
             #chat,guid = getHistory(guid,last_message,'assistant') #saving response to history
             chat.append(({'role': 'assistant', 'content': last_message}))
 
     else:
             last_message = "Error occurred during the request."
-
-    print(chat)
 
     if(lang != "en"):
         #call translator for English to Arabic
@@ -146,54 +188,22 @@ def callBotWithSpeech_withHistory(input_text,lang,guid):
     #getting Chat history (if any)
     #chat,guid = getHistory(guid,input_text,'user')
     
-    global chat;
+    global chat
     chat.append(({'role': 'user', 'content': input_text}))
     if len(chat) > 10:
         chat = chat[-10:]
 
     #Passing English Chat to askBot (Azure Open AI)
-    bot_reponse = askBot(openai_url, openai_api_key, chat,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
+    bot_reponse = askBot(chat)
 
     if bot_reponse:
-            last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"] #bot_reponse[len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
+            last_message = bot_reponse #bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"] #bot_reponse[len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
             #chat,guid = getHistory(guid,last_message,'assistant') #saving the response to history
             chat.append(({'role': 'assistant', 'content': last_message}))
 
     else:
             last_message = "Error occurred during the request"
-    print(chat)
-    if(lang != 'en-US'):
-        #Translating english response from askBot in to Arabic
-        res = translate(translation_key = translation_key,
-                        translation_location = translation_location,
-                        translation_endpoint = translation_endpoint,
-                        translation_path = translation_path,
-                        input_text = last_message,
-                        from_language = "en",
-                        to_language = lang)
-        output_text = res[0]["translations"][0]["text"]
-    
-    else:
-        output_text = last_message
-    
-    return ({"output_text": output_text, "guid":guid}) 
-
-
-############ WHATSAPP ######################################
-def callBotWithWhatsApp(input_text,lang,guid):
-    
-    #getting Chat history (if any)
-    chat,guid = getHistory(guid,input_text,'user')
-    
-    #Passing English Chat to askBot (Azure Open AI)
-    bot_reponse = askBot(openai_url, openai_api_key, chat,cognitive_service_url,cognitive_service_key,indexName) # for generic: askBot(chat)
-
-    if bot_reponse:
-            last_message = bot_reponse[len(bot_reponse)-1][len(bot_reponse[len(bot_reponse)-1])-1]["content"] #bot_reponse[len(bot_reponse[len(bot_reponse)-1])-1]["content"]  #for generic: bot_reponse[len(bot_reponse)-1]["content"] 
-            chat,guid = getHistory(guid,last_message,'assistant') #saving the response to history
-    else:
-            last_message = "Error occurred during the request"
-
+   
     if(lang != 'en-US'):
         #Translating english response from askBot in to Arabic
         res = translate(translation_key = translation_key,

@@ -35,18 +35,40 @@ var langChange = function(){
   
 }
 
+
+var input = document.getElementById("chat-input");
+input.addEventListener("keypress",function(event) {
+  if (event.key === "Enter") {
+     event.preventDefault();
+     $("#askbot").click();
+  }
+});
+
 //function to add chat objects dynamically
 var appendResponseHtml = function(response){
   let html_response = '';
-  html_response += `<a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
+  html_response += `<div class="list-group-item list-group-item-action d-flex gap-3 py-3">
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Microsoft_Azure.svg/225px-Microsoft_Azure.svg.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
-    <div class="d-flex gap-2 w-100 justify-content-between">
+    <div class="d-flex gap-2 w-100">
       <div>
-        <p class="mb-0 opacity-75">${response}</p>
+        <p class="mb-0 opacity-75" style="text-align:left">${response}</p>
       </div>
     </div>
-    </a>`;
+    </div>`;
     $("#list-group").append(html_response);
+}
+
+var appendQuestionHtml = function(question){
+  let html_question = ''
+  html_question += `<div class="list-group-item list-group-item-action d-flex gap-3 py-3">
+    <img src="./static/images/favicon.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
+    <div class="d-flex gap-2 w-100 justify-content-between">
+      <div>
+        <p class="mb-0 opacity-75" style="text-align:left">${question}</p>
+      </div>
+    </div>
+  </div>`;
+  $("#list-group").append(html_question);
 }
 
   ///// This function gets the reponse from backend - ////////////////////
@@ -55,16 +77,7 @@ var appendResponseHtml = function(response){
     
     var lang = document.getElementById('lang').value;
     var question = $("#chat-input").val();
-    let html_question = ''
-    html_question += `<a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
-      <img src="./static/images/favicon.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
-      <div class="d-flex gap-2 w-100 justify-content-between">
-        <div>
-          <p class="mb-0 opacity-75">${question}</p>
-        </div>
-      </div>
-    </a>`;
-    $("#list-group").append(html_question);
+    appendQuestionHtml(question);
     $("#chat-input").val('');
     var elem = document.getElementById('list-group');
     elem.scrollTop = elem.scrollHeight;
