@@ -28,6 +28,8 @@ indexName = config.DevelopmentConfig.indexName
 speech_key = config.DevelopmentConfig.speech_key
 speech_region = config.DevelopmentConfig.speech_region
 
+deployment = config.DevelopmentConfig.deployment
+
 
 #################################################generic Open AI configs################################################
 #openai.api_type = config.DevelopmentConfig.openai.api_type
@@ -86,7 +88,7 @@ def askBot(chat):
       'Content-Type': 'application/json'
     }
     
-    payload = ({"dataSources":[{"type":"AzureCognitiveSearch","parameters":{"endpoint":cognitive_service_url,"key":cognitive_service_key,"indexName":indexName,"semanticConfiguration":"","queryType":"simple","fieldsMapping":None,"inScope":True,"roleInformation":"You are an AI assistant for Ministry of Education & Higher Education that helps people in Qatar find information relevant to ministry of education."}}],"deployment":"openaidemo","temperature":0,"top_p":1,"max_tokens":200,"stop":None,"stream":False})
+    payload = ({"dataSources":[{"type":"AzureCognitiveSearch","parameters":{"endpoint":cognitive_service_url,"key":cognitive_service_key,"indexName":indexName,"semanticConfiguration":"","queryType":"simple","fieldsMapping":None,"inScope":True,"roleInformation":"You are an AI assistant for Ministry of Education & Higher Education that helps people in Qatar find information relevant to ministry of education."}}],"deployment":deployment,"temperature":0,"top_p":1,"max_tokens":200,"stop":None,"stream":False})
     print(chat)
     payload["messages"] = chat 
     payload = json.dumps(payload)
